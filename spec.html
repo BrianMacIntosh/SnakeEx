@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>SnakeEx Language Spec</title>
+<meta property="og:title" content="SnakeEx Language Spec">
+<meta property="og:url" content="http://www.brianmacintosh.com/snakeex/spec.html">
+<meta property="og:site_name" content="Games by Brian MacIntosh">
+<meta property="og:type" content="website">
+<meta property="og:image" content="http://brianmacintosh.com/snakeex/og_icon.png">
+<meta property="og:description" content="SnakeEx is a two-dimensional pattern-matching language similar to regex.">
+<link rel="image_src" href="http://brianmacintosh.com/snakeex/og_icon.png"/>
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="keywords" content="code golf,brian macintosh,stack exchange,interpreter,regex,pattern match,html5,javascript">
+<meta name="description" content="SnakeEx is a two-dimensional pattern-matching language similar to regex.">
+<!--script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-36013541-1', 'brianmacintosh.com');
+ga('send', 'pageview');
+</script-->
+<style>
+html{width:100%;height:100%;font-family:verdana;}
+body{margin:0 20px 0 20px;background-color:white;}
+.center{text-align:center;}
+#homediv{position:absolute;left:10px;top:10px;}
+</style>
+</head>
+<body>
+<div class="center">
+<div id="homediv"><a href="/" target="_blank"><img src="/media/title_penguin.png" height="64" alt="Penguin in a TV"/></a></div>
+<h1>SnakeEx Language Spec</h1>
+</div>
+<h3>What is this?</h3>
+<p>SnakeEx is a 2D text-search or pattern-matching language based on regex. This is the language specificiation for SnakeEx. SnakeEx is being developed for a contest on the <a href="http://codegolf.stackexchange.com/questions/47311/language-design-2-d-pattern-matching">Code Golf Stack Exchange.</a></p>
+<p>Find the online interpreter <a href="index.html">here</a>.</p>
+
+<h3>Overview</h3>
+<p>A SnakeEx program consists of a set of definitions for snakes. Each snake is defined by a sequence of commands similar to a regular expression, but including some additional ones for changing directions and spawning new snakes. This enables a SnakeEx program to recognize patterns in 2-dimensional blocks of text.</p>
+<p>A snake definition has the format:
+<b><pre>name:commands</pre></b> or
+<b><pre>name{params}:commands</pre></b>
+Each snake definition occurs on its own line. The program always starts with a single snake using the first definition, moving right.</p>
+
+<h3>Strings</h3>
+<p>When a SnakeEx program contains a sequence of text characters, the snake will attempt to read those characters in order, advancing in its current direction after each read (much like regex). If it ever encounters a character that does not match, that snake will fail.</p>
+<p>A range of characters can be specified as a shortcut:
+<b><pre>0-9</pre></b>
+This example would be replaced with '0123456789' at compile time. When used with OR semantics (see below), this construct can create regex-like character classes.</p>
+<p>Backslashes are used as an escape character to turn special characters into normal text. Special characters that need to be escaped are:</p>
+<b><pre>`:+*?~%&lt;&gt;()[]{}!.$-^\</pre></b>
+
+<h3>Calls and Params</h3>
+<p>A snake can spawn additional snakes via <b>calls</b>. All snakes must succeed for the program to consider some text a match. A call has the format:
+<b><pre>{name&lt;dir&gt;params}</pre></b>
+Which creates a new snake at the position of the current snake, pointed in the direction specified by <b>dir</b>, with some other properties defined by single-character parameters. Parameters can be defined either by the call or by the declaration being called. Snakes inherit all the parameters of their parent.</p>
+<table>
+<tr><th>Param</th><th>Significance</th></tr>
+<tr><td>P</td><td>Piggyback. The current snake will be moved to the final location and orientation of the spawned snake.</td></tr>
+<tr><td>H</td><td>Horizontal wrap. If the snake leaves the input on the x-axis, it will wrap around to the other side.</td></tr>
+<tr><td>V</td><td>Vertical wrap.</td></tr>
+<tr><td>W</td><td>Wrap all. Equivalent to 'HV'.</td></tr>
+<tr><td>E</td><td>Exclusive. This snake will not match any character that has been marked by the program.</td></tr>
+<tr><td>I</td><td>Case insensitive.</td></tr>
+<tr><td>A</td><td>Advance. Advances the calling thread, like '.!' (suitable for spawners).</td></tr>
+<tr><td>S</td><td>Silent. This snake won't mark characters it matches, like '~'.</td></tr>
+<tr><td>L</td><td>Loop. Characters can only be matched by this snake if they have already been marked, like '`'.</td></tr>
+<tr><td>0-9</td><td>Numbers put snakes in groups. All snakes in the same group must traverse the same number of characters or the program will not match.</td></tr>
+</table>
+
+<h3>AND and OR</h3>
+<p>By default, any list of statements uses AND semantics - every statement must be matched, in order, for the list to match. If you surround a list of statements with square brackets '[]', those statements will use OR semantics instead - if any one of the statements matches, the list matches. This is very similar to how character classes work in regex.</p>
+<p>A statement list containing only strings can be negated by prefixing its contents with a caret '^':
+<b><pre>^statements</pre></b>
+Note that this is invalid if the list contains any other element like a direction change or a call.</p>
+
+<h3>Closures</h3>
+<p>Like in regex, closures can be appended to tokens in the command list to repeat them a certain number of times. This branches the program - if any possible sequence of actions defined by the closure succeeds, the match succeeds. Parenthesis can be used to form groups to which closures can be applied. SnakeEx recognizes the following closures:</p>
+<table>
+<tr><th>Closure</th><th>Significance</th></tr>
+<tr><td>?</td><td>Match the token 0 or 1 times.</td></tr>
+<tr><td>*</td><td>Match the token 0 or more times.</td></tr>
+<tr><td>+</td><td>Match the token 1 or more times.</td></tr>
+<tr><td>%(num)</td><td>Match the token num times.</td></tr>
+<tr><td>%{min,max}</td><td>Match the token anywhere from min to max times (inclusive).</td></tr>
+<table>
+
+<h3>Other Operators</h3>
+<p>The '!' operator is a logical not. It will fail the match if the statement that follows it matches anything (see the Minecraft Chests example).</p>
+<p>The '~' operator indicates that following should be checked, but should not be marked as part of the solution to the problem (see the Nether Portal example).</p>
+<p>The '`' operator indicates that the following should only be matched if it is already marked. This overrides the exclusive flag.</p>
+
+<h3>Directions</h3>
+<p>All directions except '.' are relative to the current snake. Directions are used to specify the starting direction of a call, and you can also have a snake change direction mid-regex with the syntax:
+<b><pre>&lt;dir&gt;</pre></p>
+<table>
+<tr><th>Code</th><th>Significance</th></tr>
+<tr><td>R</td><td>Turn right.</td></tr>
+<tr><td>L</td><td>Turn left.</td></tr>
+<tr><td>F</td><td>Forward - does not change the direction.</td></tr>
+<tr><td>B</td><td>Backward - reverse direction.</td></tr>
+<tr><td>+</td><td>Orthogonal branch. This branches the snake in all four directions orthogonal to its current direction of travel. A match is found if any of the branches succeeeds.</td></tr>
+<tr><td>X</td><td>Diagonal branch. Same as '+' but on the diagonals and not the orthogonals.</td></tr>
+<tr><td>*</td><td>Cardinal branch. Same as '+' but including the cardinal diagonals.</td></tr>
+<tr><td>T</td><td>"Turn" branch. Branches the snake left and right.</td></tr>
+<tr><td>P</td><td>"Proceed" branch. Branches the snake forward, left, and right.</td></tr>
+<tr><td>.</td><td>Absolute reset. Points the snake right absolutely.</td></tr>
+<tr><td>!</td><td>Branches to every point on the board.</td></tr>
+<tr><td></td><td>An empty direction command is interpreted as 'F'.</td></tr>
+</table>
+
+<br/></body></html>
