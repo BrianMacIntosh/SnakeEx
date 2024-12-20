@@ -4,13 +4,13 @@ SnakeEx
 www.brianmacintosh.com - brianamacintosh@gmail.com
 
 Designed For:
-http://codegolf.stackexchange.com/questions/47311/language-design-2-d-pattern-matching
+https://codegolf.stackexchange.com/questions/47311/language-design-2-d-pattern-matching
 
 Online Interpreter Interface/Sample Code:
-www.brianmacintosh.com/snakeex
+https://www.brianmacintosh.com/snakeex
 
 Full Language Spec:
-www.brianmacintosh.com/snakeex/spec.html
+https://www.brianmacintosh.com/snakeex/spec.html
 
 This source code is the full interpreter, capable of taking code and input text
 and producing matches.
