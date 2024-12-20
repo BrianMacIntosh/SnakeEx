@@ -334,16 +334,20 @@ snakeEx.isClosure = function(token)
 {
 	return token.type == this.TOK_SPECIAL && (token.token=='*'||token.token=='?'||token.token=='+'||token.token=='%');
 }
+
+/// true if the specified string describes a direction or set of directions
 snakeEx.isDirection = function(str)
 {
 	for (var c = 0; c < str.length; c++)
 	{
 		var ch = str.charAt(c);
-		if (ch !== 'R' && ch !=='L' && ch != 'F' && ch != 'B' && ch != 'P' && ch != 'T')
+		if (ch !== 'R' && ch !=='L' && ch != 'F' && ch != 'B' && ch != 'P' && ch != 'T' && ch != 'X')
 			return false
 	}
 	return true;
 }
+
+/// true if the specified special character describes a direction
 snakeEx.isSpecialDirection = function(str)
 {
 	return str == '*' || str == '+' || str == '.'|| str == '!';
